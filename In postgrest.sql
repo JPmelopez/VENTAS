@@ -1,96 +1,108 @@
--- Tabla DISTRITO
-CREATE TABLE distrito (
-    cod_dis CHAR(5) PRIMARY KEY,
-    nom_dis VARCHAR(50) NOT NULL
+-- Tabla que almacena los distritos
+CREATE TABLE TB_DISTRITO (
+    COD_DIS CHAR(5) PRIMARY KEY,  -- Código único del distrito
+    NOM_DIS VARCHAR2(50)          -- Nombre del distrito
 );
 
--- Tabla CLIENTE
-CREATE TABLE cliente (
-    cod_cli CHAR(5) PRIMARY KEY,
-    rso_cli CHAR(30) NOT NULL,
-    dir_cli VARCHAR(100) NOT NULL,
-    tlf_cli CHAR(9),
-    ruc_cli CHAR(11),
-    cod_dis CHAR(5) REFERENCES distrito(cod_dis),
-    fec_reg DATE,
-    tip_cli VARCHAR(10),
-    con_cli VARCHAR(30)
+-- Tabla que almacena los clientes
+CREATE TABLE TB_CLIENTE (
+    COD_CLI CHAR(5) PRIMARY KEY,  -- Código único del cliente
+    RSO_CLI CHAR(30),             -- Razón social del cliente
+    DIR_CLI VARCHAR2(100),        -- Dirección del cliente
+    TLF_CLI CHAR(9),              -- Teléfono del cliente
+    RUC_CLI CHAR(11),             -- RUC del cliente
+    COD_DIS CHAR(5),              -- Código de distrito (clave foránea)
+    FEC_REG DATE,                 -- Fecha de registro
+    TIP_CLI VARCHAR2(10),         -- Tipo de cliente
+    CON_CLI VARCHAR2(30),         -- Contacto del cliente
+    FOREIGN KEY (COD_DIS) REFERENCES TB_DISTRITO(COD_DIS) ON DELETE CASCADE -- Relación con TB_DISTRITO
 );
 
--- Tabla VENDEDOR
-CREATE TABLE vendedor (
-    cod_ven CHAR(3) PRIMARY KEY,
-    nom_ven VARCHAR(20) NOT NULL,
-    ape_ven VARCHAR(20) NOT NULL,
-    sue_ven NUMERIC(10,2),
-    fin_ven DATE,
-    tip_ven VARCHAR(10),
-    cod_dis CHAR(5) REFERENCES distrito(cod_dis)
+-- Tabla que almacena los vendedores
+CREATE TABLE TB_VENDEDOR (
+    COD_VEN CHAR(5) PRIMARY KEY,  -- Código único del vendedor
+    NOM_VEN VARCHAR2(20),         -- Nombre del vendedor
+    APE_VEN VARCHAR2(20),         -- Apellido del vendedor
+    SUE_VEN DECIMAL(10,2),        -- Sueldo del vendedor
+    FIN_VEN DATE,                 -- Fecha de ingreso
+    TIP_VEN VARCHAR2(10),         -- Tipo de vendedor
+    COD_DIS CHAR(5),              -- Código de distrito (clave foránea)
+    FOREIGN KEY (COD_DIS) REFERENCES TB_DISTRITO(COD_DIS) ON DELETE CASCADE -- Relación con TB_DISTRITO
 );
 
--- Tabla PROVEEDOR
-CREATE TABLE proveedor (
-    cod_prv CHAR(5) PRIMARY KEY,
-    rso_prv VARCHAR(80) NOT NULL,
-    dir_prv VARCHAR(100) NOT NULL,
-    tel_prv CHAR(15),
-    cod_dis CHAR(5) REFERENCES distrito(cod_dis),
-    rep_prv VARCHAR(80)
+-- Tabla que almacena los proveedores
+CREATE TABLE TB_PROVEEDOR (
+    COD_PRV CHAR(5) PRIMARY KEY,  -- Código único del proveedor
+    RSO_PRV VARCHAR2(80),         -- Razón social del proveedor
+    DIR_PRV VARCHAR2(100),        -- Dirección del proveedor
+    TEL_PRV CHAR(15),             -- Teléfono del proveedor
+    COD_DIS CHAR(5),              -- Código de distrito (clave foránea)
+    REP_PRV VARCHAR2(80),         -- Representante del proveedor
+    FOREIGN KEY (COD_DIS) REFERENCES TB_DISTRITO(COD_DIS) ON DELETE CASCADE -- Relación con TB_DISTRITO
 );
 
--- Tabla PRODUCTO
-CREATE TABLE producto (
-    cod_pro CHAR(5) PRIMARY KEY,
-    des_pro VARCHAR(30) NOT NULL,
-    pre_pro NUMERIC(10,2),
-    sac_pro INT,
-    smi_pro INT,
-    uni_pro VARCHAR(30),
-    lin_pro VARCHAR(30),
-    imp_pro VARCHAR(10)
+-- Tabla que almacena las facturas
+CREATE TABLE TB_FACTURA (
+    NUM_FAC VARCHAR2(12) PRIMARY KEY,  -- Número único de la factura
+    FEC_FAC DATE,                      -- Fecha de emisión de la factura
+    COD_CLI CHAR(5),                    -- Código del cliente (clave foránea)
+    FEC_CAN DATE,                       -- Fecha de cancelación
+    EST_FAC CHAR(1) CHECK (EST_FAC IN ('P', 'N')), -- Estado de la factura (Pagado/No pagado)
+    COD_VEN CHAR(5),                    -- Código del vendedor (clave foránea)
+    POR_IGV DECIMAL(5,2),               -- Porcentaje de IGV aplicado
+    FOREIGN KEY (COD_CLI) REFERENCES TB_CLIENTE(COD_CLI) ON DELETE CASCADE, -- Relación con TB_CLIENTE
+    FOREIGN KEY (COD_VEN) REFERENCES TB_VENDEDOR(COD_VEN) ON DELETE CASCADE -- Relación con TB_VENDEDOR
 );
 
--- Tabla FACTURA
-CREATE TABLE factura (
-    num_fac VARCHAR(12) PRIMARY KEY,
-    fec_fac DATE NOT NULL,
-    cod_cli CHAR(5) REFERENCES cliente(cod_cli),
-    fec_can DATE,
-    est_fac VARCHAR(10),
-    cod_ven CHAR(3) REFERENCES vendedor(cod_ven),
-    por_igv NUMERIC(8,2)
+-- Tabla que almacena los productos
+CREATE TABLE TB_PRODUCTO (
+    COD_PRO CHAR(5) PRIMARY KEY,  -- Código único del producto
+    DES_PRO VARCHAR2(50),         -- Descripción del producto
+    PRE_PRO DECIMAL(10,2),        -- Precio del producto
+    SAC_PRO INT,                  -- Stock actual del producto
+    SMI_PRO INT,                  -- Stock mínimo del producto
+    UNI_PRO VARCHAR2(30),         -- Unidad de medida
+    LIN_PRO VARCHAR2(30),         -- Línea de producto
+    IMP_PRO DECIMAL(5,2)          -- Impuesto aplicado al producto
 );
 
--- Tabla DETALLE_FACTURA
-CREATE TABLE detalle_factura (
-    num_fac VARCHAR(12) REFERENCES factura(num_fac),
-    cod_pro CHAR(5) REFERENCES producto(cod_pro),
-    can_ven INT NOT NULL,
-    pre_ven NUMERIC(10,2) NOT NULL,
-    PRIMARY KEY (num_fac, cod_pro)
+-- Tabla que almacena el detalle de las facturas
+CREATE TABLE TB_DETALLE_FACTURA (
+    NUM_FAC VARCHAR2(12),   -- Número de la factura (clave foránea)
+    COD_PRO CHAR(5),        -- Código del producto (clave foránea)
+    CAN_VEN INT,           -- Cantidad vendida
+    PRE_VEN DECIMAL(10,2), -- Precio de venta
+    PRIMARY KEY (NUM_FAC, COD_PRO),  -- Clave primaria compuesta
+    FOREIGN KEY (NUM_FAC) REFERENCES TB_FACTURA(NUM_FAC) ON DELETE CASCADE, -- Relación con TB_FACTURA
+    FOREIGN KEY (COD_PRO) REFERENCES TB_PRODUCTO(COD_PRO) -- Relación con TB_PRODUCTO
 );
 
--- Tabla ORDEN_COMPRA
-CREATE TABLE orden_compra (
-    num_oco CHAR(5) PRIMARY KEY,
-    fec_oco DATE NOT NULL,
-    cod_prv CHAR(5) REFERENCES proveedor(cod_prv),
-    fat_oco DATE,
-    est_oco CHAR(1)
+-- Tabla que almacena las órdenes de compra
+CREATE TABLE TB_ORDEN_COMPRA (
+    NUM_OCO CHAR(5) PRIMARY KEY,  -- Número único de la orden de compra
+    FEC_OCO DATE,                 -- Fecha de emisión de la orden
+    COD_PRV CHAR(5),              -- Código del proveedor (clave foránea)
+    FAT_OCO DATE,                 -- Fecha de facturación de la orden
+    EST_OCO CHAR(1) CHECK (EST_OCO IN ('A', 'C')), -- Estado de la orden (Activo/Cancelado)
+    FOREIGN KEY (COD_PRV) REFERENCES TB_PROVEEDOR(COD_PRV) ON DELETE CASCADE -- Relación con TB_PROVEEDOR
 );
 
--- Tabla DETALLE_COMPRA
-CREATE TABLE detalle_compra (
-    num_oco CHAR(5) REFERENCES orden_compra(num_oco),
-    cod_pro CHAR(5) REFERENCES producto(cod_pro),
-    can_det INT NOT NULL,
-    PRIMARY KEY (num_oco, cod_pro)
+-- Tabla que almacena el detalle de las órdenes de compra
+CREATE TABLE TB_DETALLE_COMPRA (
+    NUM_OCO CHAR(5),   -- Número de la orden de compra (clave foránea)
+    COD_PRO CHAR(5),   -- Código del producto (clave foránea)
+    CAN_DET INT,       -- Cantidad solicitada
+    PRIMARY KEY (NUM_OCO, COD_PRO),  -- Clave primaria compuesta
+    FOREIGN KEY (NUM_OCO) REFERENCES TB_ORDEN_COMPRA(NUM_OCO) ON DELETE CASCADE, -- Relación con TB_ORDEN_COMPRA
+    FOREIGN KEY (COD_PRO) REFERENCES TB_PRODUCTO(COD_PRO) -- Relación con TB_PRODUCTO
 );
 
--- Tabla ABASTECIMIENTO
-CREATE TABLE abastecimiento (
-    cod_prv CHAR(5) REFERENCES proveedor(cod_prv),
-    cod_pro CHAR(5) REFERENCES producto(cod_pro),
-    pre_aba NUMERIC(10,2),
-    PRIMARY KEY (cod_prv, cod_pro)
+-- Tabla que almacena el abastecimiento de productos por proveedores
+CREATE TABLE TB_ABASTECIMIENTO (
+    COD_PRV CHAR(5),  -- Código del proveedor (clave foránea)
+    COD_PRO CHAR(5),  -- Código del producto (clave foránea)
+    PRE_ABA DECIMAL(10,2), -- Precio de abastecimiento
+    PRIMARY KEY (COD_PRV, COD_PRO),  -- Clave primaria compuesta
+    FOREIGN KEY (COD_PRV) REFERENCES TB_PROVEEDOR(COD_PRV) ON DELETE CASCADE, -- Relación con TB_PROVEEDOR
+    FOREIGN KEY (COD_PRO) REFERENCES TB_PRODUCTO(COD_PRO) -- Relación con TB_PRODUCTO
 );
