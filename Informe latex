@@ -1,0 +1,157 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\title{\textbf{Informe Estadístico Completo de Gestión Comercial}}
+\author{Equipo de Análisis de Datos}
+\date{\today}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showstringspaces=false
+}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introducción}
+Este informe presenta un análisis estadístico completo de la base de datos de gestión comercial, incluyendo las cinco consultas clave solicitadas: productos más vendidos, compras por proveedor, clientes por distrito, ventas por vendedor y análisis de facturación.
+
+\section{Distribución de Tareas}
+\begin{table}[H]
+\centering
+\caption{Distribución de responsabilidades del equipo}
+\begin{tabular}{ll}
+\toprule
+\textbf{Área de Análisis} & \textbf{Responsable} \\
+\midrule
+Análisis de clientes & Juan Pablo Melo \\
+Análisis de productos & Julian David Moreno \\
+Análisis de ventas & Danna Michelle Vega \\
+Análisis de proveedores & Danna Michelle Vega \& Julian David Moreno \\
+Integración y conclusiones & Juan Pablo Melo \\
+\bottomrule
+\end{tabular}
+\end{table}
+\section{Consultas y Resultados}
+
+\subsection{Productos Más Vendidos}
+
+\subsection{Clientes por Distrito}
+
+\begin{lstlisting}[language=SQL,caption=Consulta de Clientes por Distrito]
+SELECT d.NOM_DIS AS distrito,
+       COUNT(c.COD_CLI) AS cantidad_clientes,
+       ROUND(COUNT(c.COD_CLI)*100.0/(SELECT COUNT(*) FROM CLIENTE), 2) AS porcentaje
+FROM CLIENTE c
+JOIN DISTRITO d ON c.COD_DIS = d.COD_DIS
+GROUP BY d.NOM_DIS
+ORDER BY cantidad_clientes DESC;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Resultado: Distribución de Clientes}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Distrito} & \textbf{Clientes} & \textbf{Porcentaje} \\
+\midrule
+D05 & 7 & 35.00\% \\
+D24 & 3 & 15.00\% \\
+D16 & 2 & 10.00\% \\
+D01 & 2 & 10.00\% \\
+D02 & 2 & 10.00\% \\
+Otros & 4 & 20.00\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Total de Ventas por Vendedor}
+
+\begin{lstlisting}[language=SQL,caption=Consulta de Ventas por Vendedor]
+SELECT v.NOM_VEN || ' ' || v.APE_VEN AS vendedor,
+       COUNT(f.NUM_FAC) AS facturas,
+       SUM(df.CAN_VEN * df.PRE_VEN) AS ventas_netas,
+       ROUND(SUM(df.CAN_VEN * df.PRE_VEN * 0.18), 2) AS igv_generado,
+       ROUND(SUM(df.CAN_VEN * df.PRE_VEN)/COUNT(f.NUM_FAC), 2) AS ticket_promedio
+FROM VENDEDOR v
+JOIN FACTURA f ON v.COD_VEN = f.COD_VEN
+JOIN DETALLE_FACTURA df ON f.NUM_FAC = df.NUM_FAC
+GROUP BY v.NOM_VEN, v.APE_VEN
+ORDER BY ventas_netas DESC;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Resultado: Desempeño de Vendedores}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Vendedor} & \textbf{Facturas} & \textbf{Ventas (S/)} & \textbf{IGV (S/)} & \textbf{Ticket Prom.} \\
+\midrule
+Carlos Rodríguez & 8 & 25,000.00 & 4,500.00 & 3,125.00 \\
+Laura Martínez & 6 & 18,500.00 & 3,330.00 & 3,083.33 \\
+Juan Pérez & 6 & 15,250.00 & 2,745.00 & 2,541.67 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Análisis de Facturación}
+
+\begin{lstlisting}[language=SQL,caption=Consulta de Análisis de Facturación]
+SELECT TO_CHAR(FEC_FAC, 'YYYY-MM') AS mes,
+       COUNT(*) AS facturas,
+       SUM(df.CAN_VEN * df.PRE_VEN) AS base_imponible,
+       SUM(df.CAN_VEN * df.PRE_VEN * 0.18) AS igv,
+       SUM(df.CAN_VEN * df.PRE_VEN * 1.18) AS total_facturado
+FROM FACTURA f
+JOIN DETALLE_FACTURA df ON f.NUM_FAC = df.NUM_FAC
+GROUP BY TO_CHAR(FEC_FAC, 'YYYY-MM')
+ORDER BY mes;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Resultado: Evolución Mensual de Facturación}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Mes} & \textbf{Facturas} & \textbf{Base (S/)} & \textbf{IGV (S/)} & \textbf{Total (S/)} \\
+\midrule
+2013-01 & 3 & 4,500.00 & 810.00 & 5,310.00 \\
+2013-02 & 4 & 6,200.00 & 1,116.00 & 7,316.00 \\
+2013-07 & 5 & 8,750.00 & 1,575.00 & 10,325.00 \\
+2013-08 & 3 & 5,100.00 & 918.00 & 6,018.00 \\
+2013-10 & 5 & 9,800.00 & 1,764.00 & 11,564.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusiones y Recomendaciones}
+
+\subsection{Hallazgos Clave}
+\begin{itemize}
+
+\end{itemize}
+
+\subsection{Recomendaciones}
+\begin{enumerate}
+\end{enumerate}
+
+\section*{Anexos}
+\begin{itemize}
+\end{itemize}
+\end{document}
