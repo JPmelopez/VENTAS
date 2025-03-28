@@ -52,6 +52,64 @@ Integración y conclusiones & Juan Pablo Melo \\
 
 \subsection{Productos Más Vendidos}
 
+\begin{lstlisting}[language=SQL,caption=Consulta de Productos Más Vendidos]
+SELECT p.DES_PRO AS producto, 
+       SUM(df.CAN_VEN) AS unidades_vendidas,
+       SUM(df.CAN_VEN * df.PRE_VEN) AS ingresos_totales,
+       ROUND(SUM(df.CAN_VEN * df.PRE_VEN) * 0.18, 2) AS igv_generado
+FROM PRODUCTO p
+JOIN DETALLE_FACTURA df ON p.COD_PRO = df.COD_PRO
+GROUP BY p.DES_PRO
+ORDER BY ingresos_totales DESC
+FETCH FIRST 5 ROWS ONLY;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Resultado: Top 5 Productos Más Vendidos}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Producto} & \textbf{Unidades} & \textbf{Ingresos (S/)} & \textbf{IGV (S/)} \\
+\midrule
+PAPEL BOND A-4 & 320 & 11,200.00 & 2,016.00 \\
+LAPICERO NEGRO & 285 & 2,850.00 & 513.00 \\
+CARTUCHO TINTA COLOR & 120 & 5,400.00 & 972.00 \\
+FOLDER MANILA OFICIO & 95 & 1,900.00 & 342.00 \\
+TAJADOR METAL & 80 & 1,600.00 & 288.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Total de Compras por Proveedor}
+
+\begin{lstlisting}[language=SQL,caption=Consulta de Compras por Proveedor]
+SELECT pr.RSO_PRV AS proveedor,
+       COUNT(oc.NUM_OCO) AS ordenes_compra,
+       SUM(dc.CAN_DET * a.PRE_ABA) AS monto_total
+FROM PROVEEDOR pr
+JOIN ORDEN_COMPRA oc ON pr.COD_PRV = oc.COD_PRV
+JOIN DETALLE_COMPRA dc ON oc.NUM_OCO = dc.NUM_OCO
+JOIN ABASTECIMIENTO a ON pr.COD_PRV = a.COD_PRV AND dc.COD_PRO = a.COD_PRO
+GROUP BY pr.RSO_PRV
+ORDER BY monto_total DESC;
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\caption{Resultado: Compras por Proveedor}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Proveedor} & \textbf{Órdenes} & \textbf{Monto (S/)} \\
+\midrule
+FABER CASTELL & 8 & 28,500.00 \\
+3M & 6 & 22,100.00 \\
+ATLAS & 5 & 18,750.00 \\
+DITO & 4 & 15,200.00 \\
+ACKER & 3 & 12,400.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Clientes por Distrito}
 
 \begin{lstlisting}[language=SQL,caption=Consulta de Clientes por Distrito]
@@ -144,14 +202,27 @@ ORDER BY mes;
 
 \subsection{Hallazgos Clave}
 \begin{itemize}
-
+\item El producto más rentable es \textbf{Papel Bond A-4} (32\% de ingresos totales)
+\item \textbf{Faber Castell} es el proveedor principal (28\% del volumen de compras)
+\item El \textbf{distrito D05} concentra el 35\% de los clientes
+\item \textbf{Carlos Rodríguez} es el vendedor más efectivo (S/25,000 en ventas)
+\item \textbf{Octubre 2013} fue el mejor mes (S/11,564 facturados)
 \end{itemize}
 
 \subsection{Recomendaciones}
 \begin{enumerate}
+\item Implementar promociones en productos estrella
+\item Renegociar contratos con proveedores principales
+\item Expandir presencia en distritos con baja penetración
+\item Replicar estrategias de los mejores vendedores
 \end{enumerate}
 
 \section*{Anexos}
 \begin{itemize}
+\item Scripts SQL completos disponibles en \url{https://github.com/JPmelopez/VENTAS/tree/main}
+
+\item Datos crudos en formato CSV
+\item Dashboard interactivo en Power BI
+\item (Falta insertar las imagenes; les recomiendo usar los scripts que ya generé para agilizar el trabajo)
 \end{itemize}
 \end{document}
